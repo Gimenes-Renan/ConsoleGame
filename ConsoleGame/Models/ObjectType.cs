@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ConsoleGame.Models
 {
-    internal enum ObjectType
+    public enum ObjectType
     {
         Player, Monster
     }

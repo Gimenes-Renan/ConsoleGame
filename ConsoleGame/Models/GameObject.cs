@@ -6,11 +6,13 @@ using System.Threading.Tasks;
 
 namespace ConsoleGame.Models
 {
-    internal class GameObject
+    public class GameObject
     {
+        private readonly Random random;
         public GameObject()
         {
             Itens = new();
+            random = new();
         }
 
         public static GameObject GeneratePlayer()
@@ -18,12 +20,10 @@ namespace ConsoleGame.Models
             var gameObject = new GameObject()
             {
                 Hp = 6,
+                Atk = 2,
                 ObjectType = ObjectType.Player,
                 IsPlayerControlled = true,
             };
-
-            gameObject.SetDifficulty();
-
             return gameObject;
         }
 
@@ -32,55 +32,81 @@ namespace ConsoleGame.Models
             return new GameObject()
             {
                 Hp = 2,
+                Atk = 1,
                 ObjectType = ObjectType.Monster,
                 IsPlayerControlled = false,
             };
         }
 
         public int Hp { get; set; }
+        public int Atk { get; set; }
         public int Gold { get; set; }
         public List<Item> Itens { get; set; }
         public int Difficulty { get; set; }
         public ObjectType ObjectType { get; set; }
         public bool IsPlayerControlled { get; set; }
 
-        internal void SetDifficulty()
-        {
-            Console.WriteLine("Selecione a dificuldade de jogo: 1-1000");
-            Difficulty = Convert.ToInt32(Console.ReadLine());
-        }
-
-
         public bool IsAlive()
         {
             return Hp > 0;
         }
 
-        public void ActionTurn()
+        public void ActionTurn(List<GameObject> enemies)
         {
+            if (enemies.Count == 0) return;
+
             if (IsPlayerControlled)
             {
                 var option = SelectOption();
                 switch (option)
                 {
                     case 1:
-                        Console.WriteLine(ObjectType + " -> Estou atacando!!");
+                        Attack(enemies);
                         break;
                     case 2:
-                        Console.WriteLine(ObjectType + " -> Estou usando item!!");
+                        UseItem();
                         break;
                     case 3:
-                        Console.WriteLine(ObjectType + " -> Estou fugindo kkkkkkkkkkk!!");
+                        Flee();
                         break;
                 }
             }
             else
             {
-                Console.WriteLine(ObjectType + " -> Estou atacando!!");
+                Attack(enemies);
             }
         }
 
-        private int SelectOption()
+        public void Flee()
+        {
+            Console.WriteLine(ObjectType + " -> Estou fugindo kkkkkkkkkkk!!");
+        }
+
+        public void UseItem()
+        {
+            Console.WriteLine(ObjectType + " -> Estou usando item!!");
+        }
+
+        public void Attack(List<GameObject> enemies)
+        {
+            var target = enemies[random.Next(enemies.Count - 1)];
+
+            Console.WriteLine(ObjectType + " ATK -> " + target.ObjectType);
+            target.Hp -= Atk;
+
+            Console.WriteLine($"O ataque foi de: {Atk} e o {target.ObjectType}: {target.Hp} HP");
+
+            if (target.Hp <= 0)
+                target.Die(enemies);
+        }
+
+        private void Die(List<GameObject> list)
+        {
+            Console.WriteLine($"O {ObjectType} morreu...");
+            list.Remove(this);
+        }
+
+        public int SelectOption()
         {
             ShowOptions();
             return Convert.ToInt32(Console.ReadLine());
@@ -93,17 +119,10 @@ namespace ConsoleGame.Models
             Console.WriteLine("2 - Usar item de cura (se tiver)");
             Console.WriteLine("3 - Fugir para curar (bundãoooooooo!!)");
         }
-    }
 
-    public class Item
-    {
-        public Item()
+        public override string ToString()
         {
-            Name = string.Empty;
+            return $"{ObjectType} - HP: {Hp} - ATK: {Atk}";
         }
-
-        public string Name { get; set; }
-        public int Type { get; set; }
-        public int Value { get; set; }
     }
 }

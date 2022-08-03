@@ -9,49 +9,64 @@ namespace ConsoleGame.Engine
 {
     public class ConsoleGame
     {
-        private readonly GameObjects _gameObjects;
-        private readonly GameObject _player;
+        private readonly GameObjects _game;
 
         public ConsoleGame()
         {
-            _gameObjects = new GameObjects();
-            _player = GameObject.GeneratePlayer();
+            _game = new GameObjects();
         }
 
         public void Run()
         {
+            AddHeroes();
+            do
+            {
+                PreBattle();
+                Battle();
+                PostBattle();
+            } while (_game.Pcs.Count > 0 && _game.Npcs.Count > 0);
+            GameOver();
+        }
+
+        private void AddHeroes()
+        {
+            _game.AddHeroes();
+        }
+
+        private void PostBattle()
+        {
+            Console.WriteLine("Fim de batalha");
+        }
+
+        private void Battle()
+        {
             do
             {
                 TurnBegins();
-            } while (_player.IsAlive());
-            GameOver();
+            } while (_game.Pcs.Count > 0 && _game.Npcs.Count > 0);
+        }
+
+        private void PreBattle()
+        {
+            Console.WriteLine("Pré-batalha");
+            _game.SetDifficulty();
+
+            Console.WriteLine("Nível de dificuldade: {0}", _game.Difficulty);
+            while (_game.Npcs.Count < _game.Difficulty)
+            {
+                Console.WriteLine("- Adicionado inimigo -");
+                _game.Npcs.Add(GameObject.GenerateMonster());
+            }
         }
 
         private void TurnBegins()
         {
-            Console.WriteLine("Inicio do turno:");
-            if (_gameObjects.Objects.Count <= _player.Difficulty)
-            {
-                _gameObjects.Objects.Add(GameObject.GenerateMonster());
-            }
-            _player.ActionTurn();
-            _gameObjects.Objects.ForEach(e => e.ActionTurn());
-            _player.Hp--;
+            _game.Actions();
         }
 
         private void GameOver()
         {
             Console.WriteLine("Já era playboy!");
         }
-    }
-
-    internal class GameObjects
-    {
-        public GameObjects()
-        {
-            Objects = new();
-        }
-
-        public List<GameObject> Objects { get; set; }
     }
 }
